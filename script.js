@@ -17,11 +17,16 @@ const addItem = (e) => {
     newItem.appendChild(newButton);
     list.appendChild(newItem);
 
+    localStorage.setItem(itemInput.value, itemInput.value);
+    
+    
     itemInput.value = '';
   }
-
+  
   UI()
 };
+
+
 
 const createButton = (classes) => {
   const newButton = document.createElement('button');
@@ -40,11 +45,14 @@ const createIcon = (classes) => {
 const removeElement = (e) => {
   e.target.parentElement.className === 'delete' ? e.target.parentElement.parentElement.remove() : '';
 
+  localStorage.removeItem(e.target.parentElement.parentElement.innerText)
+
   UI();
 };
 
 const clearAll = () => {
   document.querySelectorAll('.items li').forEach(item => item.remove());
+  localStorage.clear();
 
   UI();
 };
@@ -67,12 +75,10 @@ const filterItems = (e) => {
 };
 
 const UI = () => {
-  if (list.children.length === 0) {
+  if (localStorage.length === 0) {
     clearButton.style.display = 'none';
-    /* list.style.display = 'none'; */
   } else {
     clearButton.style.display = 'block';
-    /* list.style.display = 'grid' */
   }
 }
 
@@ -87,3 +93,19 @@ clearButton.addEventListener('click', clearAll);
 itemFilter.addEventListener('input', filterItems);
 
 UI();
+
+const displayStorage = () => {
+  for (let i = 0; i < localStorage.length; i++) {
+    const li = document.createElement('li')
+    li.innerText = localStorage.key(i);
+    const button = createButton('delete');
+  
+    li.appendChild(button)
+    list.appendChild(li)
+  }
+}
+
+displayStorage();
+
+
+

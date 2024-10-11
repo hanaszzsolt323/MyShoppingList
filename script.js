@@ -19,6 +19,8 @@ const addItem = (e) => {
 
     itemInput.value = '';
   }
+
+  UI()
 };
 
 const createButton = (classes) => {
@@ -37,10 +39,14 @@ const createIcon = (classes) => {
 
 const removeElement = (e) => {
   e.target.parentElement.className === 'delete' ? e.target.parentElement.parentElement.remove() : '';
+
+  UI();
 };
 
 const clearAll = () => {
-  document.querySelectorAll('.items li').forEach(item => item.style.display = 'none')
+  document.querySelectorAll('.items li').forEach(item => item.remove());
+
+  UI();
 };
 
 const filterItems = (e) => {
@@ -56,7 +62,20 @@ const filterItems = (e) => {
       item.style.display = 'none';
     }
   })
+
+  UI();
 };
+
+const UI = () => {
+  if (list.children.length === 0) {
+    clearButton.style.display = 'none';
+    /* list.style.display = 'none'; */
+  } else {
+    clearButton.style.display = 'block';
+    /* list.style.display = 'grid' */
+  }
+}
+
 
 
 
@@ -66,3 +85,5 @@ form.addEventListener('submit', addItem);
 list.addEventListener('click', removeElement);
 clearButton.addEventListener('click', clearAll);
 itemFilter.addEventListener('input', filterItems);
+
+UI();

@@ -1,111 +1,151 @@
-const itemInput = document.querySelector('.addItem');
-const submitButton = document.querySelector('.itemSubmit');
-const list = document.querySelector('.items');
-const form = document.querySelector('.form-menu');
-const clearButton = document.querySelector('.clear-button');
+const itemForm = document.querySelector('.form');
+const itemInput = document.querySelector('.add-item');
+const itemList = document.querySelector('.items');
+const deleteAll = document.querySelector('.clear-button');
 const itemFilter = document.querySelector('.item-filter');
 
-
-const addItem = (e) => {
+const onAddItemSubmit = (e) => {
   e.preventDefault();
-  if(itemInput.value) {
-    const newItem = document.createElement('li');
-    const text = document.createTextNode(itemInput.value);
-    const newButton = createButton('delete');
-    
-    newItem.appendChild(text);
-    newItem.appendChild(newButton);
-    list.appendChild(newItem);
 
-    localStorage.setItem(itemInput.value, itemInput.value);
-    
-    
-    itemInput.value = '';
+  if (itemInput.value === '') {
+    alert('Add an item');
+    return;
   }
+
+  addItemToDOM(itemInput.value);
+
+  // Add item to localStorage
+  addItemToStorage(itemInput.value)
+
+  itemInput.value = '';
+
+
+  clearUI();
+}
+
+// Add ItemToDom
+const addItemToDOM = (item) => {
+  const newItem = document.createElement('li');
+  const text = document.createTextNode(item);
+  newItem.appendChild(text);
   
-  UI()
-};
+  const newButton = createButton('delete');
+  
+  newItem.appendChild(newButton);
+  
+  itemList.appendChild(newItem);
+}
 
 
-
+// Create Button
 const createButton = (classes) => {
   const newButton = document.createElement('button');
-  newButton.className = classes;
   const icon = createIcon('fa-solid fa-xmark');
+  newButton.className = classes;
   newButton.appendChild(icon);
   return newButton;
-};
+} 
 
+// Create Icon
 const createIcon = (classes) => {
-  const newIcon = document.createElement('i');
-  newIcon.className = classes;
-  return newIcon;
-};
+  const icon = document.createElement('i');
+  icon.className = classes;
+  return icon;
+}
 
-const removeElement = (e) => {
-  e.target.parentElement.className === 'delete' ? e.target.parentElement.parentElement.remove() : '';
+// Add item to localStorage
+const addItemToStorage = (item) => {
+  let itemsFromStorage;
 
-  localStorage.removeItem(e.target.parentElement.parentElement.innerText)
+  if(localStorage.getItem('items') === null) {
+    itemsFromStorage = []
+  } else {
+    itemsFromStorage = JSON.parse(localStorage.getItem('items'));
+  }
 
-  UI();
-};
+  itemsFromStorage.push(item);
 
-const clearAll = () => {
-  document.querySelectorAll('.items li').forEach(item => item.remove());
-  localStorage.clear();
+  // Convert to JSON String and set to localStorage
+  localStorage.setItem('items', JSON.stringify(itemsFromStorage));
+}
 
-  UI();
-};
+// Get Items from storage
+const getItemsFromStorage = () => {
+  const items = JSON.parse(localStorage.getItem('items'));
+  if (localStorage.getItem('items') !== null) {
+    displayItemsFromStorage(items);
+  } 
+}
 
-const filterItems = (e) => {
-  const items = document.querySelectorAll('.items li');
-  const text = e.target.value.toLowerCase();
-
+const displayItemsFromStorage = (items) => {
   items.forEach(item => {
-    const itemName = item.firstChild.textContent.toLowerCase();
-
-    if(itemName.indexOf(text) != -1) {
-      item.style.display = 'flex';
-    } else {
-      item.style.display = 'none';
-    }
+    const newItem = document.createElement('li');
+    const text = document.createTextNode(item);
+    newItem.appendChild(text);
+  
+    const newButton = createButton('delete');
+  
+    newItem.appendChild(newButton);
+  
+    itemList.appendChild(newItem);
   })
 
-  UI();
-};
+  clearUI()
+}
 
-const UI = () => {
-  if (localStorage.length === 0) {
-    clearButton.style.display = 'none';
+// Remove Item
+const removeItem = (e) => {
+  e.target.className === 'fa-solid fa-xmark' ? (e.target.parentElement.parentElement.remove(), deleteFromStorage(e.target.parentElement.parentElement.innerText), clearUI()) : '';
+}
+
+// Delete Item from localStorage
+const deleteFromStorage = (item) => {
+  const items = JSON.parse(localStorage.getItem('items'));
+  const index = items.indexOf(item);
+  items.splice(index, 1);
+
+  localStorage.setItem('items', JSON.stringify(items))
+}
+
+// Delete all
+const deleteAllItems = () => {
+  document.querySelectorAll('.items li').forEach(item => item.remove());
+
+  localStorage.clear();
+
+  clearUI();
+}
+
+// Filter Items
+const filterItems = (e) => {
+  const items = document.querySelectorAll('li');
+  items.forEach(item => {
+    const text = item.innerText.toLowerCase();
+    if(text.indexOf(e.target.value.toLowerCase()) !== -1) {
+      item.style.display = 'flex'
+    } else {
+      item.style.display = 'none'
+    }
+  })
+}
+
+// Clear UI
+const clearUI = () => {
+  if(!document.querySelectorAll('.items li').length) {
+    deleteAll.style.display = 'none';
+    itemFilter.style.display = 'none';
   } else {
-    clearButton.style.display = 'block';
+    deleteAll.style.display = 'block';
+    itemFilter.style.display = 'block';
   }
 }
 
+// Events
+itemForm.addEventListener('submit', onAddItemSubmit);
+itemList.addEventListener('click', removeItem);
+deleteAll.addEventListener('click', deleteAllItems);
+itemFilter.addEventListener('input', filterItems)
 
-
-
-
-
-form.addEventListener('submit', addItem);
-list.addEventListener('click', removeElement);
-clearButton.addEventListener('click', clearAll);
-itemFilter.addEventListener('input', filterItems);
-
-UI();
-
-const displayStorage = () => {
-  for (let i = 0; i < localStorage.length; i++) {
-    const li = document.createElement('li')
-    li.innerText = localStorage.key(i);
-    const button = createButton('delete');
-  
-    li.appendChild(button)
-    list.appendChild(li)
-  }
-}
-
-displayStorage();
-
-
+clearUI();
+getItemsFromStorage();
 

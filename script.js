@@ -1,127 +1,125 @@
-const itemForm = document.querySelector('.form');
-const itemInput = document.querySelector('.add-item');
-const itemList = document.querySelector('.items');
-const deleteAll = document.querySelector('.clear-button');
+const form = document.querySelector('.form-menu');
+const submitBtn = form.querySelector('.itemSubmit');
+const input = document.querySelector('.add-item');
+const ul = document.querySelector('.items');
+const clearBtn = document.querySelector('.clear-button');
 const itemFilter = document.querySelector('.item-filter');
 
-const onAddItemSubmit = (e) => {
+let isEditMode = false;
+
+
+const addItem = (e) => {
   e.preventDefault();
 
-  if (itemInput.value === '') {
-    alert('Add an item');
-    return;
+  let arr;
+
+  if (localStorage.getItem('items') === null) {
+    arr = []
+  } else {
+    arr = JSON.parse(localStorage.getItem('items'));
   }
 
-  addItemToDOM(itemInput.value);
+  if (isEditMode) {
+    const listItems = document.querySelectorAll('.items li');
+    listItems.forEach(item => {
+      if (item.className === 'edit-mode') {
+        item.remove();
+        pushItem(arr);
+      }
+    })
 
-  // Add item to localStorage
-  addItemToStorage(itemInput.value)
-
-  itemInput.value = '';
-
-
-  clearUI();
+    submitBtn.value = '+ Add Item';
+    submitBtn.classList.remove('upgrade-item');
+    input.value = '';
+    isEditMode = false;
+  } else {
+    pushItem(arr)
+  }
+  
+  
 }
 
-// Add ItemToDom
-const addItemToDOM = (item) => {
-  const newItem = document.createElement('li');
-  const text = document.createTextNode(item);
-  newItem.appendChild(text);
-  
-  const newButton = createButton('delete');
-  
-  newItem.appendChild(newButton);
-  
-  itemList.appendChild(newItem);
+const pushItem = (arr) => {
+  if (input.value === '') {
+    alert('Hi');
+    return;
+  } else {
+    arr.push(input.value);
+    
+    localStorage.setItem('items', JSON.stringify(arr));
+    
+    displayItem(input.value)
+    input.value = '';
+  }
 }
 
+const displayItem = (text) => {
+  const li = document.createElement('li');
+  const button = newButton('delete');
+  li.textContent = text;
+  li.appendChild(button);
+  ul.appendChild(li)
+}
 
-// Create Button
-const createButton = (classes) => {
-  const newButton = document.createElement('button');
-  const icon = createIcon('fa-solid fa-xmark');
-  newButton.className = classes;
-  newButton.appendChild(icon);
-  return newButton;
-} 
+const newButton = (classes) => {
+  const button = document.createElement('button');
+  button.className = classes;
+  const icon = newIcon('fa-solid fa-xmark');
+  button.appendChild(icon);
+  return button;
+}
 
-// Create Icon
-const createIcon = (classes) => {
+const newIcon = (classes) => {
   const icon = document.createElement('i');
   icon.className = classes;
   return icon;
 }
 
-// Add item to localStorage
-const addItemToStorage = (item) => {
-  let itemsFromStorage;
 
-  if(localStorage.getItem('items') === null) {
-    itemsFromStorage = []
+const displayAllItems = () => {
+  const arr = JSON.parse(localStorage.getItem('items'));
+
+  if (arr) {
+    arr.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      const button = newButton('delete');
+      li.appendChild(button);
+      ul.appendChild(li);
+    })
   } else {
-    itemsFromStorage = JSON.parse(localStorage.getItem('items'));
+    return;
   }
-
-  itemsFromStorage.push(item);
-
-  // Convert to JSON String and set to localStorage
-  localStorage.setItem('items', JSON.stringify(itemsFromStorage));
 }
 
-// Get Items from storage
-const getItemsFromStorage = () => {
-  const items = JSON.parse(localStorage.getItem('items'));
-  if (localStorage.getItem('items') !== null) {
-    displayItemsFromStorage(items);
-  } 
-}
-
-const displayItemsFromStorage = (items) => {
-  items.forEach(item => {
-    const newItem = document.createElement('li');
-    const text = document.createTextNode(item);
-    newItem.appendChild(text);
-  
-    const newButton = createButton('delete');
-  
-    newItem.appendChild(newButton);
-  
-    itemList.appendChild(newItem);
-  })
-
-  clearUI()
-}
-
-// Remove Item
-const removeItem = (e) => {
-  e.target.className === 'fa-solid fa-xmark' ? (e.target.parentElement.parentElement.remove(), deleteFromStorage(e.target.parentElement.parentElement.innerText), clearUI()) : '';
-}
-
-// Delete Item from localStorage
-const deleteFromStorage = (item) => {
-  const items = JSON.parse(localStorage.getItem('items'));
-  const index = items.indexOf(item);
-  items.splice(index, 1);
-
-  localStorage.setItem('items', JSON.stringify(items))
-}
-
-// Delete all
-const deleteAllItems = () => {
-  document.querySelectorAll('.items li').forEach(item => item.remove());
-
+const clearAll = () => {
+  const list = document.querySelectorAll('.items li');
+  list.forEach(item => item.remove());
   localStorage.clear();
-
-  clearUI();
 }
 
-// Filter Items
+const deleteItem = (e) => {
+  const storedItems = JSON.parse(localStorage.getItem('items'));
+  const text = e.target.parentElement.parentElement.textContent;
+  const index = storedItems.indexOf(text);
+
+  if (e.target.parentElement.className === 'delete') {
+    storedItems.splice(index, 1);
+    localStorage.setItem('items', JSON.stringify(storedItems));
+    e.target.parentElement.parentElement.remove();
+  } else {
+    editMode(e.target)
+  }
+}
+
 const filterItems = (e) => {
-  const items = document.querySelectorAll('li');
+  const items = document.querySelectorAll('.items li')
+  const text = e.target.value.toLowerCase();
+
   items.forEach(item => {
-    const text = item.innerText.toLowerCase();
-    if(text.indexOf(e.target.value.toLowerCase()) !== -1) {
+    const itemText = item.textContent.toLowerCase();
+    
+    if(itemText.indexOf(text) !== -1) {
       item.style.display = 'flex'
     } else {
       item.style.display = 'none'
@@ -129,23 +127,25 @@ const filterItems = (e) => {
   })
 }
 
-// Clear UI
-const clearUI = () => {
-  if(!document.querySelectorAll('.items li').length) {
-    deleteAll.style.display = 'none';
-    itemFilter.style.display = 'none';
-  } else {
-    deleteAll.style.display = 'block';
-    itemFilter.style.display = 'block';
+const editMode = (target) => {
+  const storedItems = JSON.parse(localStorage.getItem('items'));
+  const index = storedItems.indexOf(target.textContent);
+
+  if (target.nodeName === 'LI') {
+    isEditMode = true;
+    target.classList.add('edit-mode');
+    input.value = target.textContent;
+    submitBtn.value = 'Upgrade Item';
+    submitBtn.classList.add('upgrade-item');
+    storedItems.splice(index, 1);
+    localStorage.setItem('items', JSON.stringify(storedItems));
   }
 }
 
-// Events
-itemForm.addEventListener('submit', onAddItemSubmit);
-itemList.addEventListener('click', removeItem);
-deleteAll.addEventListener('click', deleteAllItems);
-itemFilter.addEventListener('input', filterItems)
+displayAllItems();
 
-clearUI();
-getItemsFromStorage();
+form.addEventListener('submit', addItem);
+clearBtn.addEventListener('click', clearAll);
+ul.addEventListener('click', deleteItem);
+itemFilter.addEventListener('input', filterItems);
 

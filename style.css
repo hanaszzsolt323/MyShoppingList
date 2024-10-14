@@ -132,3 +132,7 @@ body {
     }
   }
 }
+
+.edit-mode {
+  color: #ccc;
+}

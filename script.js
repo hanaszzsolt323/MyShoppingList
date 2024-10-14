@@ -17,6 +17,11 @@ const addItem = (e) => {
     arr = []
   } else {
     arr = JSON.parse(localStorage.getItem('items'));
+    if (arr.includes(input.value.toLowerCase())) {
+      alert('Nyld meg');
+      input.value = '';
+      return;
+    }
   }
 
   if (isEditMode) {
@@ -35,8 +40,6 @@ const addItem = (e) => {
   } else {
     pushItem(arr)
   }
-  
-  
 }
 
 const pushItem = (arr) => {
@@ -141,6 +144,17 @@ const editMode = (target) => {
     localStorage.setItem('items', JSON.stringify(storedItems));
   }
 }
+
+/* const getSameItem = () => {
+  const storedItems = JSON.parse(localStorage.getItem('items'))
+  storedItems.forEach((item, index) => {
+    if (storedItems.indexOf(item) !== index) {
+      storedItems.splice(storedItems.indexOf(item), 1);
+      localStorage.setItem('items', JSON.stringify(storedItems))
+    }
+  })
+} */
+
 
 displayAllItems();
 
